@@ -1,7 +1,7 @@
 NM
 ==
 
-Net Framework v0.1: this software gives information about the machine 
+Network Monitor v0.1: this software gives information about the machine 
 and the network where it runs, such as hosts on the network and their 
 services, local connections and hardware resources 
 (such as CPU load, memory usage, etc...).
