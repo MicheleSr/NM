@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+    <title>Network Monitor</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <script type="text/javascript" src="jquery-2.0.3.min.js"></script>
+</head>
+<body>
+
+<script>
+
+    $(document).ready(function() {
+
+        getHW();
+        window.setInterval(getHW, 1000);
+
+        getHosts();
+        window.setInterval(getHosts, 20000);
+
+        getConnections();
+        window.setInterval(getConnections, 5000);
+    });
+
+    function makeHumanReadable(size) {
+
+        var suffix = ['bytes', 'kiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'],
+            i = 0;
+
+        if (size >= 1024) {
+            i = Math.floor(Math.log(size) / Math.log(1024));
+        }
+
+        if (i > suffix.length) {
+            i = suffix.length;
+        }
+
+        return (Math.round((parseFloat(size) / Math.pow(1024, i)) * 100) / 100).toString() + ' ' + suffix[i];
+    }
+
+    function getHW() {
+        $.getJSON('/hardware.json', function(hwdata) {
+
+            $('#cpu').html(hwdata.cpu);
+            $('#cores').html(hwdata.cores);
+            $('#ram').html(makeHumanReadable(hwdata.ram * hwdata.total_ram / 100));
+            $('#ram_percent').html(hwdata.ram);
+            $('#total_ram').html(makeHumanReadable(hwdata.total_ram));
+            $('#swap').html(makeHumanReadable(hwdata.swap * hwdata.total_swap / 100));
+            $('#swap_percent').html(hwdata.swap);
+            $('#total_swap').html(makeHumanReadable(hwdata.total_swap));
+            $('#disk_r').html(makeHumanReadable(hwdata.disk_r));
+            $('#disk_w').html(makeHumanReadable(hwdata.disk_w));
+            $('#net_in').html(makeHumanReadable(hwdata.net_in));
+            $('#net_out').html(makeHumanReadable(hwdata.net_out));
+        });
+    }
+
+</script>
+
+
+<div id="header">
+    <h1>Network Monitor</h1>
+</div>
+
+<h2>Local Hardware</h2>
+<table id='hardware'>
+    <thead>
+        <tr>
+            <th>CPU load</th>
+            <th>RAM usage</th>
+            <th>Swap usage</th>
+            <th>Disk r/w</th>
+            <th>Network traffic</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <span id="cpu"></span>%<br />
+                on <span id="cores"></span> cores
+            </td>
+            <td>
+                <span id="ram"></span> (<span id="ram_percent"></span>%)<br />
+                of <span id="total_ram"></span>
+            </td>
+            <td>
+                <span id="swap"></span> (<span id="swap_percent"></span>%)<br />
+                of <span id="total_swap"></span>
+            </td>
+            <td>
+                Read: <span id="disk_r"></span>/s<br />
+                Write: <span id="disk_w"></span>/s
+            </td>
+            <td>
+                In: <span id="net_in"></span>/s<br />
+                Out: <span id="net_out"></span>/s
+            </td>
+       </tr>
+    </tbody>
+</table>
+
+
+<h2>Local Area Network</h2>
+
+<div id="hosts"></div>
+
+
+<script>
+
+    function getHosts() {
+        $.getJSON('/hosts.json', function(hosts) {
+
+            var h = '';
+
+            if ($.isEmptyObject(hosts.up)) {
+                h += '<p>No hosts found (yet)</p>';
+            }
+            else {
+                $.each(hosts.up, function(i, host) {
+
+                    h += '<h3>' + host.ip + ' (up)</h3>';
+
+                    if ($.isEmptyObject(host.services) || (
+                        $.isEmptyObject(host.services.tcp) &&
+                        $.isEmptyObject(host.services.sctp) &&
+                        $.isEmptyObject(host.services.ip) &&
+                        $.isEmptyObject(host.services.udp))) {
+
+                        h += '<p>No services found (yet)</p>';
+                    }
+                    else {
+
+                        h += '<table>';
+                        h += '<thead>';
+                        h += '<tr>';
+                        h += '<th>Protocol</th>';
+                        h += '<th>Port</th>';
+                        h += '<th>State</th>';
+                        h += '<th>Service</th>';
+                        h += '<th>Package</th>';
+                        h += '<th>Version</th>';
+                        h += '</tr>';
+                        h += '</thead>';
+                        h += '<tbody>';
+
+                        $.each(host.services, function(j, protocol) {
+                            $.each(protocol, function(k, port) {
+
+                                h += '<tr>';
+                                h += '<td>' + j + '</td>';
+                                h += '<td>' + port[0] + '</td>';
+                                h += '<td>' + port[1] + '</td>';
+                                h += '<td>' + port[2] + '</td>';
+                                h += '<td>' + port[3] + '</td>';
+                                h += '<td>' + port[4] + '</td>';
+                                h += '</tr>';
+                            });
+                        });
+
+                        h += '</tbody>';
+                        h += '</table>';
+                    }
+                });
+            }
+
+            if (hosts.down.length) {
+                h += '<h3>Host(s) down:</h3>'
+                $.each(hosts.down, function(i, host) {
+
+                    h += '<h3>' + host.ip + '</h3>'
+                });
+            }
+
+           $('#hosts').html(h);
+        });
+    }
+
+</script>
+
+
+<h2>Local connections</h2>
+<div id="connections"></div>
+
+<script>
+
+    function getConnections() {
+        $.getJSON('/connections.json', function(protocols) {
+
+            var p = '';
+
+            $.each(protocols, function(protocol, info) {
+
+                p += '<h3>' + protocol + '</h3>';
+
+                if ($.isEmptyObject(info)) {
+                    p += '<p>No connections with this protocol</p>';
+                }
+                else {
+
+                    p += '<table>';
+                    p += '<thead>';
+                    p += '<tr>';
+                    p += '<th>User</th>';
+                    p += '<th>Local address</th>';
+                    p += '<th>Remote address</th>';
+                    p += '<th>State</th>';
+                    p += '<th>PID</th>';
+                    p += '<th>Binary</th>';
+                    p += '</tr>';
+                    p += '</thead>';
+                    p += '<tbody>';
+
+                    $.each(info, function(j, conn) {
+
+                        p += '<tr>';
+                        p += '<td>' + conn[1] + '</td>';
+                        p += '<td>' + conn[2] + '</td>';
+                        p += '<td>' + conn[3] + '</td>';
+                        p += '<td>' + conn[4] + '</td>';
+                        p += '<td>' + conn[5] + '</td>';
+                        p += '<td>' + conn[6] + '</td>';
+                        p += '</tr>';
+                    });
+
+                    p += '</tbody>';
+                    p += '</table>';
+                }
+
+                $('#connections').html(p);
+            });
+        });
+    }
+
+</script>
+
+
+</body>
+</html>

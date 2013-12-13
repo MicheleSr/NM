@@ -1,0 +1,57 @@
+body {
+    background: #DDD;
+    font-family: sans-serif;
+}
+
+#header {
+    position: relative;
+    margin: 0;
+    padding: 2px 5px;
+    background: #111;
+    
+}
+
+h1 {
+    color: #FFF;
+    text-align: center;
+}
+
+h2 {
+    color: #222;
+    margin-top: 40px;
+    text-align: left;
+}
+
+h3 {
+    color: #444;
+    font-style: italic;
+    margin-top: 25px;
+    text-align: left;
+}
+
+p {
+    color: #333
+}
+
+table {
+    font-size: 13px;
+    border-width: 0;
+}
+
+th {
+    padding: 10px;
+    color: #FFF;
+    background-color: #777;
+    text-align: left;
+}
+
+td {
+    padding: 5px 20px 5px 10px;
+    background-color: #FEFEFE;
+}
+
+#hardware th, #hardware td {
+    width: 20%;
+    text-align: center;
+    min-width: 120px;
+}
