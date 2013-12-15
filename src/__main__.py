@@ -156,6 +156,7 @@ if __name__ == '__main__':
             httpd = HTTPServer(('localhost', port), MyHandler)
             print("Starting web server on port: %d" 
                    % httpd.server_port)
+            print("Open your web browser on http://localhost:%d" %httpd.server_port)
             print("Press CONTROL-C for stopping it!")
             netmapper = NetMapper()
             netmapper.start()
