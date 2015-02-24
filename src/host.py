@@ -11,7 +11,7 @@ from time import sleep
 from sys import exit
 
 class Host(Thread):
-   
+
     def __init__(self, ip):
 
         """ Costruttore del thread """

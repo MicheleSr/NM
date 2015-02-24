@@ -1,0 +1,3 @@
+ipaddress
+python-nmap
+psutil
